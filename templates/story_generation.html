@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narrativi BOT - AI Story Telling Bot</title>
+    <link rel="icon" href="{{ url_for('static', filename='MainScreenBot.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="story-container">
+        <img src="{{ url_for('static', filename='image1.png') }}" id="story-image" alt="Image">
+        <h1 id="story-title"></h1>
+        <h2 id="story-content"></h2>
+        <br>
+    </div>
+    <script>
+        // Retrieve story title, content, and link from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyTitle = urlParams.get('storyTitle');
+        const storyContent = urlParams.get('storyContent');
+        const storyLink = urlParams.get('storyLink'); 
+        const shouldNarrate = urlParams.get('shouldNarrate');
+
+        // Set the retrieved values in the HTML elements
+        const titleElement = document.getElementById('story-title');
+        const contentElement = document.getElementById('story-content');
+
+        titleElement.textContent = storyTitle;
+        contentElement.textContent = storyContent;
+
+        // Check if the link is present and not 'nil'
+        if (storyLink && storyLink !== 'nil') {
+            // Create a button element for the link
+            const linkButton = document.createElement('a');
+            linkButton.href = storyLink;
+            linkButton.target = '_blank'; // Open the link in a new tab
+            linkButton.textContent = 'See Video';
+
+            // Append the button to the story-container div
+            document.querySelector('.story-container').appendChild(linkButton);
+        } else {
+            // Display a message if there's no valid link
+            const noVideoMessage = document.createElement('p');
+            noVideoMessage.textContent = 'No video for this story';
+            document.querySelector('.story-container').appendChild(noVideoMessage);
+        }
+
+        
+
+        if (shouldNarrate === 'true') {
+            switchImages();
+        }
+
+        function switchImages() {
+            const imageElement = document.getElementById('story-image');
+            const imageUrl1 = "/static/image1.png";  // Adjust the path accordingly
+            const imageUrl2 = "/static/image2.png";  // Adjust the path accordingly
+
+            // Use a boolean flag to toggle between images
+            let isImage1 = true;
+
+            // Function to check if the narration is still playing
+            function isNarrationPlaying() {
+                return window.narrationPlaying;
+            }
+
+            // Switch images every second until narration stops
+            const intervalId = setInterval(() => {
+                if (isImage1) {
+                    imageElement.src = imageUrl1;
+                } else {
+                    imageElement.src = imageUrl2;
+                }
+                isImage1 = !isImage1;  // Toggle the boolean flag
+            }, 200);
+        }
+
+
+
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

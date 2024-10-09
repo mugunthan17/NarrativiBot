@@ -1,0 +1,108 @@
+from flask import Flask, render_template, request, jsonify
+import os
+import random
+import platform
+import threading
+from gtts import gTTS
+import subprocess
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/select_story')
+def select_story():
+    return render_template('story_selection.html')
+
+
+@app.route('/generate_story', methods=['POST'])
+def generate_story():
+    data = request.get_json()
+    language = data.get('language')
+    genre = data.get('genre')
+    should_narrate = data.get('shouldNarrate')
+
+    generated_story = generate_story_function(language, genre)
+    story_title = generated_story['title']
+    story_content = generated_story['story']
+
+    if should_narrate == 'true':
+        narration_path = os.path.join(app.root_path, 'static', 'narration.mp3')
+        generate_and_play_narration(story_content, narration_path)
+
+    return jsonify({'title': story_title, 'content': story_content})
+
+
+@app.route('/story_generation')
+def story_generation():
+    return render_template('story_generation.html')
+
+
+def generate_and_play_narration(text, file_path):
+    narration = gTTS(text=text, lang='en')
+    narration.save(file_path)
+    threading.Thread(target=play_narration, args=(file_path,)).start()
+
+def play_narration(file_path):
+    system_platform = platform.system()
+    
+    if system_platform == 'Darwin':
+        subprocess.run(['afplay', file_path])
+    elif system_platform == 'Linux':
+        subprocess.run(['aplay', file_path])
+    elif system_platform == 'Windows':
+        os.startfile(file_path)
+    else:
+        print("Unsupported operating system for audio playback.")
+
+def generate_story_function(language, genre):
+    stories = {
+        'English': {
+            'Adventure': [
+                {
+                    'title': 'The Haunted Mansion',
+                    'story': 'Once upon a time...'
+                },
+                {
+                    'title': 'Whispers in the Dark',
+                    'story': 'In a small village...'
+                },
+                # Add more horror stories here...
+            ],
+            'Mystery': [
+                {
+                    'title': 'The Haunted Mansion',
+                    'story': 'Once upon a time...'
+                },
+                {
+                    'title': 'Whispers in the Dark',
+                    'story': 'In a small village...'
+                },
+                # Add more horror stories here...
+            ],
+            'SciFi': [
+                {
+                    'title': 'Time Wrap',
+                    'story': 'The Story Time Warp Starts in 2197, humanity mastered time travel through the Temporal Research Institute (T R I). Physicist Sarah Jensen, inspired by her grandfathers secret research, built the ChronoSphere. Its mission: rescue her lost brother David, who vanished in a T R I experiment. Landing in 1888 London, she uncovered a hidden society altering history, led by Professor Reginald Kane. To thwart his world-altering scheme, Sarah, along with inventor Samuel Hawthorne and disillusioned society members, disabled Kanes device. Temporal authorities erased their tampering, and Sarah returned to 2197, understanding the ChronoSpheres responsibility to protect history'
+                },
+                {
+                    'title': 'StarBound',
+                    'story': 'In the distant future, humanity had colonized distant galaxies. Interstellar travel was commonplace, but not without risks. Sarah, an intrepid explorer, embarked on a solo journey to the edge of the universe. Her mission: to uncover the mysteries of an ancient, uncharted star system.Navigating cosmic anomalies and facing isolation, Sarah discovered an ethereal, celestial being within the system. It communicated through cosmic harmonies, revealing the universes secrets. Sarah learned of a cosmic balance essential to lifes existence.Returning to Earth, she shared her revelations. Humanity united to protect the delicate equilibrium, ensuring the survival of their species among the stars. "Starbound" became a legend, a testament to the profound connections waiting to be unearthed in the vastness of the cosmos.'
+                },
+                {
+                    'title': 'SCIFI 3',
+                    'story': 'This is Science Fiction Story 3'
+                },
+                # Add more horror stories here...
+            ],
+        },
+        
+        # Add more languages with genre and stories here
+    }
+    return random.choice(stories[language][genre])
+
+if __name__ == '__main__':
+    app.run(debug=True)

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narrativi BOT - AI Story Telling Bot</title>
+    <link rel="icon" href="{{ url_for('static', filename='MainScreenBot.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="story-container">
+        <h1 id="story-title"></h1>
+        <h2 id="story-content"></h2>
+    </div>
+    <script>
+        // Retrieve story title and content from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyTitle = urlParams.get('storyTitle');
+        const storyContent = urlParams.get('storyContent');
+
+        // Set the retrieved values in the HTML elements
+        const titleElement = document.getElementById('story-title');
+        const contentElement = document.getElementById('story-content');
+        titleElement.textContent = storyTitle;
+        contentElement.textContent = storyContent;
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

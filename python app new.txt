@@ -1,0 +1,148 @@
+from flask import Flask, render_template, request, jsonify
+import os
+import random
+import platform
+import threading
+from gtts import gTTS
+import subprocess
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/select_story')
+def select_story():
+    return render_template('story_selection.html')
+
+
+@app.route('/generate_story', methods=['POST'])
+def generate_story():
+    data = request.get_json()
+    language = data.get('language')
+    genre = data.get('genre')
+    should_narrate = data.get('shouldNarrate')
+
+    generated_story = generate_story_function(language, genre)
+    story_title = generated_story['title']
+    story_content = generated_story['story']
+
+    if should_narrate == 'true':
+        narration_path = os.path.join(app.root_path, 'static', 'narration.mp3')
+        generate_and_play_narration(story_content, narration_path)
+
+    return jsonify({'title': story_title, 'content': story_content})
+
+
+@app.route('/story_generation')
+def story_generation():
+    return render_template('story_generation.html')
+
+
+def generate_and_play_narration(text, file_path):
+    narration = gTTS(text=text, lang='en')
+    narration.save(file_path)
+    threading.Thread(target=play_narration, args=(file_path,)).start()
+
+def play_narration(file_path):
+    system_platform = platform.system()
+    
+    if system_platform == 'Darwin':
+        subprocess.run(['afplay', file_path])
+    elif system_platform == 'Linux':
+        subprocess.run(['aplay', file_path])
+    elif system_platform == 'Windows':
+        os.startfile(file_path)
+    else:
+        print("Unsupported operating system for audio playback.")
+
+def generate_story_function(language, genre):
+    stories = {
+        'English': {
+            'Adventure': [
+                {
+                    'title': 'The Haunted Mansion',
+                    'story': 'Once upon a time...'
+                },
+                {
+                    'title': 'Whispers in the Dark',
+                    'story': 'In a small village...'
+                },
+                # Add more horror stories here...
+            ],
+            'Mystery': [
+                {
+                    'title': "The Forest's Treasure - MAGIC BOX",
+                    'story': "In a distant land, a group of young classmates went to explore a lovely forest after one of them mentioned that he knew of a forest close to the school, they immediately reached the forest and found it vvery beautiful with its long dark green trees and long flowers they were very happy to be there and while they were walking they found an amazing and attractive house so they decided to approach it they were more curious than before to enter the house and take a look at what was inside so they were suprised at the beauty and decoration inside as weel as the various fruits and drinks they really enjoyed the atmosphere there after a while they began to hear the sound of someone's footsteps approaching the place. The children were scared to hear that someone was approaching the house and opening the door, their fear increased and they decided to hide in a big old box in a very dusty room, that room seemed empty and a bit scary as if it was not a part of that house, suddenly when everyone hid and closed the box, the children were supprised that the box is another beautiful world and not just a simple ordinary box, after hiding in the old box the children found a new world with fruit trees and many sources of delicious drinks then they understtod that the fruits and drinks they already found in the house were all from this spectacular new world. So they felt very happy in the new discovered world more than before and they decided to stay playing living there and not going back to their old world, their school and their houses after the kids enjoyed and felt so happy in the new relaxing world they suddenly saw an angry giant coming towards them and got into trouble with him so they ran and he started chasing them, among the beautiful fruit trees and the giant lost his head from anger which made him fall into a small lake and began to sink because he didi not know how to swim, they started looking for another solution instead of going near the lake, because it is dangerous all of them and while they were thinking the children found a large and strong branch of a fallen tree on the ground, they decided to hold it and put it in the lake to resue the giant and finally the wet giant climbed on the branch and miraculously come back from death after the great work that the children had done the giant felt ashamed and regretted having scared them. So he decided to give them something to make them happier but they did not want to and only asking him to guide them out of the box. He then took them to a big tree that had a hole in it and told them that when they entered the box to hide from the giant they came out of the hole in that big tree and fell into the magical world, after that the giant and the children entered the hallow of the tree one by one then got out of the box and found themselves in the house again, then they understood that the beautiful house was the house of the Giant. After the giant took the children out of the box and returned them to the house, he gave them a wonderful reward that made them very happy. He seriously handed them the old box and told them it was now theirs to keep. He explained that the world inside the box is very big and that they could enjoy all the places inside the strange box. The children were very happy to hear this news and couldn't believe their luck, they thanked the giant and promised to take good care of the box. The giant similed and waved a goodbye to them happy to have made peace with the children, when they returned to their houses they decided to keep the Secret of the box between them. They knew that if someone else discovered the box they couldn't keep it for themseleves. So they agreed that no one else should know the truth of the box. That night after their families had gone to sleep the children ran away from thei homes and gathered in the empty place. They excitedly opened the box abnd went inside eager to explore the vast and magical world again, they spent the whole night playing and exploring and when the sun began to rise, they left the box and returned to their homes exhausted but happy from that day on the children met every night to enter the box and explore more and more of the magical world they never got tired and spent hours and hours inside the box discovering new wonders and secrets and so the old box become their greatest treasure and the children kep it a secret for year to come it was their special place a world of Magic and Wonder know only to them and whenever they neeeded to escape from the real world they entered the box and lost themseleves in its endless wonders.",
+                    'link' : "https://youtu.be/NF5XM6FaxIs?si=dXzVLVN-514SFb9U"
+                },
+                {
+                    'title': 'Whispers in the Dark',
+                    'story': 'In a small village...'
+                },
+                # Add more horror stories here...
+            ],
+            'SciFi': [
+                {
+                    'title': 'Time Wrap',
+                    'story': 'The Story Time Warp Starts in 2197, humanity mastered time travel through the Temporal Research Institute (T R I). Physicist Sarah Jensen, inspired by her grandfathers secret research, built the ChronoSphere. Its mission: rescue her lost brother David, who vanished in a T R I experiment. Landing in 1888 London, she uncovered a hidden society altering history, led by Professor Reginald Kane. To thwart his world-altering scheme, Sarah, along with inventor Samuel Hawthorne and disillusioned society members, disabled Kanes device. Temporal authorities erased their tampering, and Sarah returned to 2197, understanding the ChronoSpheres responsibility to protect history'
+                },
+                {
+                    'title': 'StarBound',
+                    'story': 'In the distant future, humanity had colonized distant galaxies. Interstellar travel was commonplace, but not without risks. Sarah, an intrepid explorer, embarked on a solo journey to the edge of the universe. Her mission: to uncover the mysteries of an ancient, uncharted star system.Navigating cosmic anomalies and facing isolation, Sarah discovered an ethereal, celestial being within the system. It communicated through cosmic harmonies, revealing the universes secrets. Sarah learned of a cosmic balance essential to lifes existence.Returning to Earth, she shared her revelations. Humanity united to protect the delicate equilibrium, ensuring the survival of their species among the stars. "Starbound" became a legend, a testament to the profound connections waiting to be unearthed in the vastness of the cosmos.'
+                },
+                {
+                    'title': 'SCIFI 3',
+                    'story': 'This is Science Fiction Story 3'
+                },
+                # Add more horror stories here...
+            ],
+        },
+        'Tamil': {
+            'Adventure': [
+                {
+                    'title': 'ஆந்தையும் வெட்டுக்கிளியும்',
+                    'story': 'ஒரு காட்டு பகுதியில ஒரு பெரிய மரம் இருந்துச்சு அந்த பெரிய மரத்தோட பொந்துல ஒரு வயசான ஆந்தை வாழ்ந்துகிட்டு வந்துச்சு ஒருநாள் காலையில அந்த ஆந்தை தன்னோட பொந்துல தூங்கிகிட்டு இருந்துச்சு அப்ப அங்க வந்த வெட்டுக்கிளி கிக்கி கிக்கினு கத்திகிட்டே இருந்துச்சு அப்ப அந்த ஆந்தை சொல்லுச்சு கொஞ்சம் சும்மா இருங்க நான் ஓய்வெடுக்கணும்னு சொல்லுச்சு அத கேட்ட வெட்டுக்கிளிக்கு கோபம் வந்துடுச்சு ,இந்த மரம் என்ன உனக்கு மட்டும் சொந்தமானு கேட்டு சண்டை போட்டுச்சு புத்திசாலியான ஆந்தை முகஸ்துதி செய்ய ஆரம்பிச்சுச்சு ,அடடா முதல்ல நீங்க போட்ட சத்தம் இப்ப சங்கீதமா கேக்குதுனு சொல்லுச்சு ஆந்தையோட பேச்சுல மயங்கிப்போன வெட்டுக்கிளி அன்னைக்கு முழுசும் அங்கேயே இருந்து கத்திகிட்டே இருந்துச்சு அப்பத்தான் சூரியன் மறைஞ்சு ராத்திரி வந்துச்சு , வெட்டுக்கிளிக்கு கண்ணு சுத்தமா தெரியல ,ஆனா இரவுல வேட்டையாடுற ஆந்தைக்கு நல்லா கண்ணு தெரிஞ்சிச்சு டக்குனு அந்த வெட்டுக்கிளி மேல குதிச்சு அத நசுக்கி கொன்னுடுச்சு அப்பத்தான் அந்த வெட்டுக்கிளிக்கு புரிஞ்சது அந்த ஆந்த நமக்கு முகஸ்துதி செஞ்சது நம்மள இரவு வரைக்கும் இங்கயே இருக்க வைக்கத்தானு'
+                },
+                {
+                    'title': 'மணி அடித்த குரங்குகள்',
+                    'story': 'ஒரு காட்டு பகுதிக்கு பக்கத்துல இருக்குற ஒரு கிராமத்துல ஒரு திருடன் இருந்தான் அந்த திருடன் எத பார்த்தாலும் திருடிட்டு போயி காட்டுக்கு அடுத்து இருக்குற ஊருல வித்து வாழ்க்கை நடத்திக்கிட்டு இருந்தான் ஒரு நாள் அவன் கோவில் பக்கம் போனான் ,அப்ப மணி அடிக்கிற சத்தம் கேட்டுச்சு அவனுக்கு உடனே கோவிலுக்கு போனான் அந்த திருடன் அங்க ஒரு பெரிய மணி தொங்கிகிட்டு இருக்குறத பார்த்தான் ,அடடா இந்த மணிய திருடி வித்தா ஒரு வாரம் நாம திருட போக வேணாம்னு நினைச்ச அந்த திருடன் அந்த மணிய திருடிட்டு காட்டுவழியா அடுத்த ஊருக்கு நடந்து போக ஆரம்பிச்சான் அவன் நடக்க நடக்க அந்த மணி டிங் டாங்குனு சத்தம் கொடுக்க ஆரம்பிச்சுச்சு,அந்த மணியோட சத்தம் காட்டுக்குள்ள ஒரு தூங்கிட்டிரு இருந்த ஒரு புலியோட தூக்கத்த கெடுத்துச்சு யாரு மணி அடிச்சு தன்னை எழுப்பிவிட்டானு ரொம்ப கோபத்தோட பார்த்துச்சு அந்த புலி புலிய பார்த்ததும் அந்த திருடன் ரொம்ப பயந்து போனான் ,அந்த புலி அவன ஒரு அடி அடிச்சது உடனே அந்த திருடனுக்கு ஒரே ரெத்தமா வந்துச்சு ,இந்த மணிய தூக்கிகிட்டு இந்த புலிகிட்ட இருந்து தப்பிக்க முடியாதுனு அந்த மணிய அங்கயே போட்டுட்டு வேகமா ஓட ஆரம்பிச்சான் திருடன் அந்த புலியும் அவன தொரத்திக்கிட்டே போக ஆரம்பிச்சுச்சு அப்பதான் ஒரு குரங்கு கூட்டம் அந்த பக்கமா வந்துச்சுங்க அந்த குரங்கு கூட்டம் அந்த மணிய பார்த்ததும் அத எடுத்து அடிச்சி சத்தம் வர வச்சு பாத்துச்சுங்க அந்த மணி எழுப்புனா டிங் டாங் சத்தம் கேட்டதும் அந்த குரங்குகளுக்கு ரொம்ப பிடிச்சி போச்சு அதனால அதுங்க எல்லாம் ஒண்ணா சேர்ந்து அந்த மணிய எடுத்துக்கிட்டு தாங்க வாழுற பெரிய மரத்துக்கு போச்சுங்க அந்த மரம் ஊருக்கு பக்கத்துல இருக்குற காட்டு பகுதியில இருந்ததால , ஒவ்வொரு தடவ அந்த மணிய அடிக்கும் போதும் அது ஊர் கரங்களுக்கு கேட்டுச்சு திடீர்னு காட்டுக்குள்ள இருந்து மணி சத்தம் தொடர்ந்து கேட்டதால ஊர்மக்கள் எல்லாம் ரொம்ப பயந்து போனாங்க  இரவு பகல்னு தொடர்ந்து மணி சத்தம் கேட்டதால, ஊர்மக்கள் அந்த நாட்ட ஆண்ட ராஜாகிட்ட போயி சொன்னாங்க அந்த ராஜா சொன்னாரு இந்த பிரச்சனைக்கு யார் காரணம்னு கண்டுபிடிச்சி ,அந்த மணி சத்தத்தை நிறுத்துறவங்களுக்கு நிறய பரிசு கொடுக்குறேனு எல்லாருகிட்டயும் சொன்னாரு இத கேட்ட ஒரு பாட்டி தைரியத்தோட காட்டுக்குள்ள போனாங்க ,அங்க குரங்குகள் மணிய வச்சு விளையாண்டுக்கிட்டு இருந்தத பார்த்தாங்க அடடா இது இது குரங்குகளோட வேலையானு சொன்ன அந்த பாட்டி ,அந்த மணிய குரங்குங்க கிட்ட இருந்து எப்படி பிடுங்குறதுனு ஒரு திட்டம் போட்டாங்க உடனே நேரா சந்தைக்கு போயி நிறைய பழங்கள் காய் கறிகள் எல்லாம் வாங்கி ஒரு கூடையில் போட்டு எடுத்துக்கிட்டு திரும்ப அந்த காட்டுக்கு போனாங்க காட்டுக்கு போன அந்த பாட்டி குரங்குகளுக்கு தெரியிற மாதிரி அந்த கூடைய வச்சிட்டு தூங்குறமாதிரி நடிக்க ஆரம்பிச்சாங்க அந்த கூடைய பார்த்த குரங்குகள் மெதுவா மரத்துல இருந்து ஒவ்வொண்ணா இறங்கி வந்து பார்த்துச்சுங்க மெதுவா ஒவ்வொரு குரங்கா அந்த கூடையில் இருந்த பழங்களையும் காய்கறிகளையும் எடுத்து திங்க ஆரம்பிச்சுச்சுங்க அப்ப மணி வச்சிருந்த குரங்கும் மெதுவா கீழ இறங்கி வந்துச்சு , கீழ வந்த அந்த கொரங்கு மணிய கீழ போட்டுட்டு ஒரு பழத்தை எடுத்து திங்க ஆரம்பிச்சுச்சு இத எல்லாம் ஒர காண்ணால பார்த்துகிட்டு இருந்த அந்த பாட்டி டக்குனு அந்த மணிய எடுத்துகிட்டாங்க மணிய எடுத்த பாட்டி நேரா அரசர்கிட்ட போயி நடந்தது எல்லாம் சொன்னாங்க , தைரியத்தோடவும் புத்திசாலித்தனத்தோடவும் மணிய எடுத்துட்டு வந்து பிரச்னையை தீர்த்த அந்த பாட்டிக்கு நிறய பரிசு கொடுத்தாரு அந்த ராஜா'
+                },
+                # Add more horror stories here...
+            ],
+            'Mystery': [
+                {
+                    'title': 'The Haunted Mansion',
+                    'story': 'Once upon a time...'
+                },
+                {
+                    'title': 'Whispers in the Dark',
+                    'story': 'In a small village...'
+                },
+                # Add more horror stories here...
+            ],
+            'SciFi': [
+                {
+                    'title': 'Time Wrap',
+                    'story': 'The Story Time Warp Starts in 2197, humanity mastered time travel through the Temporal Research Institute (T R I). Physicist Sarah Jensen, inspired by her grandfathers secret research, built the ChronoSphere. Its mission: rescue her lost brother David, who vanished in a T R I experiment. Landing in 1888 London, she uncovered a hidden society altering history, led by Professor Reginald Kane. To thwart his world-altering scheme, Sarah, along with inventor Samuel Hawthorne and disillusioned society members, disabled Kanes device. Temporal authorities erased their tampering, and Sarah returned to 2197, understanding the ChronoSpheres responsibility to protect history'
+                },
+                {
+                    'title': 'StarBound',
+                    'story': 'In the distant future, humanity had colonized distant galaxies. Interstellar travel was commonplace, but not without risks. Sarah, an intrepid explorer, embarked on a solo journey to the edge of the universe. Her mission: to uncover the mysteries of an ancient, uncharted star system.Navigating cosmic anomalies and facing isolation, Sarah discovered an ethereal, celestial being within the system. It communicated through cosmic harmonies, revealing the universes secrets. Sarah learned of a cosmic balance essential to lifes existence.Returning to Earth, she shared her revelations. Humanity united to protect the delicate equilibrium, ensuring the survival of their species among the stars. "Starbound" became a legend, a testament to the profound connections waiting to be unearthed in the vastness of the cosmos.'
+                },
+                {
+                    'title': 'SCIFI 3',
+                    'story': 'This is Science Fiction Story 3'
+                },
+                # Add more horror stories here...
+            ],
+        },
+        
+        # Add more languages with genre and stories here
+    }
+    return random.choice(stories[language][genre])
+
+if __name__ == '__main__':
+    app.run(debug=True)

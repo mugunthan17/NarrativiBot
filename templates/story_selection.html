@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narrativi BOT - AI Story Telling Bot</title>
+    <link rel="icon" href="{{ url_for('static', filename='MainScreenBot.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="banner">
+        <img id="banner-img" src="{{ url_for('static', filename='banner.png') }}" alt="Narrativi BOT">
+    </div>
+    <div class="story-forms">
+        <label for="Language">SELECT LANGUAGE</label><br>
+        <select name="Language" id="Language">
+            <option value="English">English</option>
+            <option value="Tamil">Tamil</option>
+        </select><br>
+        <label for="Genre">SELECT GENRE</label><br>
+        <select name="Genre" id="Genre">
+            <option value="SciFi">SciFi</option>
+            <option value="Adventure">Adventure</option>
+            <option value="Mystery">Mystery</option>
+        </select><br>
+        <input type="checkbox" id="narration">
+        <label for="narration">Narrate the Story</label><br>
+        <button id="story-generate-button" onclick="genStory()">GENERATE</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

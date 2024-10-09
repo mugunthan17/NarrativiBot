@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narrativi BOT - AI Story Telling Bot</title>
+    <link rel="icon" href="{{ url_for('static', filename='MainScreenBot.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="mainDiv">
+        <img id="mainImg" src="{{ url_for('static', filename='MainScreenBot.png') }}" alt="Narrativi BOT">
+        <h1 id="heading1">NARRATIVI BOT</h1>
+        <button id="get-started-btn" onclick="moveto2ndPage()">START</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
